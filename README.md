@@ -146,7 +146,7 @@ The pre-training model for this implementation is available at [Baidu Cloud Driv
 │  utils.py                       # tool classes
 ```
 
-### 6.2 参数说明
+### 6.2 description
 
 * **train.py** description for parameters(partly)
 
