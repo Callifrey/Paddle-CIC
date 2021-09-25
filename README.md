@@ -55,7 +55,7 @@ The original paper used 10,000 independent sheets from the mageNet validation se
 
 
 
-## 5. Dependency
+## 4. Dependency
 
 * Hardware：GPU、CPU
 * Pacakge： scikit-image>=0.14.2
