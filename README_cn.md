@@ -94,7 +94,7 @@ python -m paddle.distributed.launch --gpus '0,1,2,3' train.py --image_dir [train
   bash remove_invalid.sh
   ```
 
-* **步骤2：**生成上色图像
+* **步骤2：** 生成上色图像
 
   ```python
   python test.py --image_dir [testing path]
