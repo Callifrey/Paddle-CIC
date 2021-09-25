@@ -31,7 +31,7 @@ This project is based on the PaddlePaddle framework to reproduce the classical i
 * [Official Caffe Implement](https://github.com/richzhang/colorization/tree/caffe)
 * [Unofficial Pytorch implement](https://github.com/Epiphqny/Colorization)
 
-**在线运行**
+**Online Operation**
 
 * Ai Studio job project：[https://aistudio.baidu.com/aistudio/clusterprojectdetail/2304371](https://aistudio.baidu.com/aistudio/clusterprojectdetail/2304371)
 
