@@ -7,10 +7,10 @@ from paddle.vision import transforms
 import matplotlib.pyplot as plt
 
 parser = argparse.ArgumentParser()
-parser.add_argument('--imgs_dir', type=str, default='/media/gallifrey/DJW/Dataset/Imagenet/val',
+parser.add_argument('--imgs_dir', type=str, default='./data/test',
                     help='path for saving trained models')
 parser.add_argument('--results_dir', type=str, default='./result', help='path for generated images')
-parser.add_argument('--save_path', type=str, default='./metric/metric_results', help='path for save metric results')
+parser.add_argument('--save_path', type=str, default='./metric/metric_results_224', help='path for save metric results')
 args = parser.parse_args()
 
 if not os.path.exists(args.save_path):
