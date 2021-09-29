@@ -17,8 +17,8 @@ ImageFile.LOAD_TRUNCATED_IMAGES = True
 parser = argparse.ArgumentParser()
 # 基本设置
 parser.add_argument('--model_path', type=str, default='./model/', help='path for saving trained models')
-parser.add_argument('--load_size', type=int, default=286, help='size for randomly cropping images')
-parser.add_argument('--crop_size', type=int, default=256, help='size for randomly cropping images')
+parser.add_argument('--load_size', type=int, default=224, help='size for randomly cropping images')
+parser.add_argument('--crop_size', type=int, default=224, help='size for randomly cropping images')
 parser.add_argument('--image_dir', type=str, default='/media/gallifrey/DJW/Dataset/Imagenet/train', help='directory for resized images')
 parser.add_argument('--loss_step', type=int, default=10, help='step size for printing loss info')
 parser.add_argument('--save_latest', type=int, default=2000, help='step for save model under iteration')
@@ -38,7 +38,7 @@ parser.add_argument('--beta2', type=float, default=0.99, help='beta2 param for a
 parser.add_argument('--weight_decay', type=float, default=0.001, help='rate for model weight decay')
 
 # 超参数
-parser.add_argument('--rebalance', type=bool, default=False, help='use color re-balance or not')
+parser.add_argument('--rebalance', type=bool, default=True, help='use color re-balance or not')
 parser.add_argument('--NN', type=int, default=5, help='the number of nearest for KNN')
 parser.add_argument('--sigma', type=float, default=5.0, help='sigma for gaussian kernel')
 parser.add_argument('--gamma', type=float, default=0.5, help='rate for mixture of uniform distribution and empirical distribution')
@@ -46,11 +46,9 @@ parser.add_argument('--gamma', type=float, default=0.5, help='rate for mixture o
 args = parser.parse_args()
 print(args)
 
-# 用于训练的数据增强操作
 train_transform = transforms.Compose([
     transforms.Resize(args.load_size),
-    transforms.RandomCrop(args.crop_size),
-    transforms.RandomHorizontalFlip(),
+    transforms.CenterCrop(args.crop_size)
 ])
 
 if not os.path.exists(args.model_path):
