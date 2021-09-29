@@ -127,6 +127,7 @@ python -m paddle.distributed.launch --gpus '0,1,2,3' train.py --image_dir [train
 ### 6.1 代码结构
 
 ```python
+├─data                            # 数据集
 ├─imgs                            # 各类图像
 ├─log                             # 日志保存
 ├─metric                          # 指标保存
