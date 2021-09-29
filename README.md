@@ -94,7 +94,7 @@ python -m paddle.distributed.launch --gpus '0,1,2,3' train.py --image_dir [train
 
 ### Testing
 
-* **step1 ** generate colorization results
+* **step1** generate colorization results
 
   ```python
   python test.py --image_dir [testing path]
