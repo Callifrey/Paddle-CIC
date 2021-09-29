@@ -17,8 +17,8 @@ if not os.path.exists(args.save_path):
     os.makedirs(args.save_path)
 
 real_transform = transforms.Compose([
-    transforms.Resize(256),
-    transforms.CenterCrop(256),
+    transforms.Resize(224),
+    transforms.CenterCrop(224),
 ])
 
 threshold_table = np.zeros(200)
