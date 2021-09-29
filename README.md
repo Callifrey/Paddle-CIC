@@ -20,6 +20,8 @@ English| [简体中文](./README_cn.md)
 
 ## 1. Introduction
 
+![architecture](./imgs/architecture.png)
+
 This project is based on the PaddlePaddle framework to reproduce the classical image colorization paper CIC (Colorful Image Colorization), CIC is able to model the color channels for grayscale input and recover the color of the image. The innovation of this paper is to consider the prediction of color channels (ab) as a classification task, i.e., the real ab channels are first encoded into 313 bins, and the forward process of the model is equivalent to performing 313 class classification. At the same time, in order to solve the problem that the image recovered color is affected by a large unsaturated area such as the background, the loss of each pixel is weighted according to the prior distribution of ab, which is essentially equivalent to doing color class balancing.
 
 **Paper**
@@ -39,19 +41,29 @@ This project is based on the PaddlePaddle framework to reproduce the classical i
 
 ## 2. Accuracy
 
-| Model                                    | AuC    | ACC    |
-| ---------------------------------------- | ------ | ------ |
-| Full (color rebalance, $\lambda=0.5$ )   | 87.48% | 58.19% |
-| Non-rebalance                            | 90.89% | 60.54% |
-| Rebalance(color rebalance, $\lambda=0$ ) | 87.07% | 57.65% |
+The CIC model is trained on 224x224 resolution, but since the model contains only convolutional layers, it can handle image inputs of arbitrary size when doing tests, and thus we report two different sets of test results:
 
-* **Note**: The original paper used 10,000 independent sheets from the mageNet validation set as a test set when evaluating model performance, and since it was not possible to determine which part, the metrics for this replication were obtained on the entire validation and the validation set was not used for the entire training process.
+* oringinal size(no resize)
 
-  
+  | Model                                    | AuC        | ACC                                    |
+  | ---------------------------------------- | ---------- | -------------------------------------- |
+  | Full (color rebalance, $\lambda=0.5$ )   | 86.36%     | **56.0%** (two decimal places：55.89%) |
+  | Non-rebalance                            | **90.61%** | 59.32%                                 |
+  | Rebalance(color rebalance, $\lambda=0$ ) | **75.82%** | 41.37                                  |
+
+* resize input to 224x224
+
+  | Model                                    | AuC        | ACC        |
+  | ---------------------------------------- | ---------- | ---------- |
+  | Full (color rebalance, $\lambda=0.5$ )   | 87.36%     | **56.44%** |
+  | Non-rebalance                            | **91.13%** | 59.40%     |
+  | Rebalance(color rebalance, $\lambda=0$ ) | **77.91%** | 42.86%     |
+
+  **Note: **The bolded metrics are those reported in the paper and are aligned in both test settings.
 
 ## 3. Dataset
 
-The original paper used 10,000 independent sheets from the mageNet validation set as a test set when evaluating the model performance. Since it was not possible to determine which part, the metrics for this replication were obtained on the entire validation and the validation set was not used throughout the training process.
+The dataset in the paper is [ImageNet](https://image-net.org/), and the experiments are conducted on the CIE Lab color space. The original ImageNet dataset consists of about 130W training images, 50,000 validation set images and 10,000 test images, and the original training set is used for this replication. According to the paper description, the validation of the model is performed on the first 10,000 validation sets, and the testing is performed on 10,000 separate images in the validation set. The division follows the paper ["Learning representations for automatic colorization"](https://link.springer.com/chapter/10.1007/978-3-319-46493-0_35) , and the specific division strategy See [official website](http://people.cs.uchicago.edu/~larsson/colorization/)
 
 
 
@@ -82,25 +94,13 @@ python -m paddle.distributed.launch --gpus '0,1,2,3' train.py --image_dir [train
 
 ### Testing
 
-* **step1：** Since there are single channel grayscale images in ImageNet's validation set, these images are invalid for testing, first run the following code to find the invalid images
-
-  ```python
-  python get_invalid_images.py
-  ```
-
-  The above code will generate a delete script in the root directory after execution, execute the script file to delete invalid images
-
-  ```python
-  bash remove_invalid.sh
-  ```
-
-* **step2：**generate colorization results
+* **step1：**generate colorization results
 
   ```python
   python test.py --image_dir [testing path]
   ```
 
-* **step3：** Image classification is performed on the generated colorized images to get the classification accuracy, because the generated colorized images can get higher classification accuracy than grayscale images when the colorized model performs well. Here, consistent with the original paper, a pre-trained VGG-16 is used to perform the classification. The model structure and pre-trained weights are obtained from paddle.vision.models.
+* **step2：** Image classification is performed on the generated colorized images to get the classification accuracy, because the generated colorized images can get higher classification accuracy than grayscale images when the colorized model performs well. Here, consistent with the original paper, a pre-trained VGG-16 is used to perform the classification. The model structure and pre-trained weights are obtained from paddle.vision.models.
 
   ```python
   python metrics_acc.py 
@@ -108,7 +108,7 @@ python -m paddle.distributed.launch --gpus '0,1,2,3' train.py --image_dir [train
 
   The final precision results are written to the specified directory(eg:[./metric/metric_results](./metric/metric_results))
 
-* **step4：** The Euclidean distance is calculated between the real image and the ab channel of the generated image, and the proportion of pixels within a specific threshold is counted. The thresholds are scanned one by one from 0 to 150, and the final statistics are drawn as a curve to calculate the area under the curve. This is similar to the traditional AuC calculation, but this implementation does not use a third-party library, and directly approximates the area under the curve by the area of the **"right-angle trapezoid "** formed between two adjacent thresholds. Summing over 150 trapezoid areas and then normalizing.
+* **step3：** The Euclidean distance is calculated between the real image and the ab channel of the generated image, and the proportion of pixels within a specific threshold is counted. The thresholds are scanned one by one from 0 to 150, and the final statistics are drawn as a curve to calculate the area under the curve. This is similar to the traditional AuC calculation, but this implementation does not use a third-party library, and directly approximates the area under the curve by the area of the **"right-angle trapezoid "** formed between two adjacent thresholds. Summing over 150 trapezoid areas and then normalizing.
 
   ```pytho
   python metrics_auc.py
@@ -120,7 +120,7 @@ python -m paddle.distributed.launch --gpus '0,1,2,3' train.py --image_dir [train
 
 ### Prediction with pre-trained mode
 
-The pre-training model for this implementation is available at [Baidu Cloud Drive](https://pan.baidu.com/s/1znPsSVKCUeNYLev5Aicq4w ), extraction code: [hhg4 ](#), The pre-training model consists of three groups, which are Full model, Non-rebalance variant, and Rebalance variants. Each folder contains the final checkpoint and the train loss recorded during training using the Paddle visualdl tool.
+The pre-training model for this implementation is available at [Baidu Cloud Drive](https://pan.baidu.com/s/16irXOKfOC1T_wKV_TC73Jw), extraction code: [f444 ](#), The pre-training model consists of three groups, which are Full model, Non-rebalance variant, and Rebalance variants. Each folder contains the final checkpoint and the train loss recorded during training using the Paddle visualdl tool.
 
 ## 6. Code structure and description
 
@@ -178,10 +178,10 @@ The pre-training model for this implementation is available at [Baidu Cloud Driv
 
 ### 7.1 Training loss and AuC curve
 
-|                    Full model                    |                  variant：non-rebalance                   |                 bariant2：rebalance                 |
-| :----------------------------------------------: | :-------------------------------------------------------: | :-------------------------------------------------: |
-|       ![full](./imgs/full_train_loss.png)        |         ![non-reb](./imgs/non_rebalance_loss.png)         |          ![reb](./imgs/rebalance_loss.png)          |
-| ![full—auc](./metric/metric_results/Raw_AcU.png) | ![nonreb—auc](./metric/metric_results_nonreb/Raw_AuC.png) | ![reb_auc](./metric/metric_results_reb/Raw_AuC.png) |
+|                        Full model                         |                    variant：non-rebalance                    |                     bariant2：rebalance                      |
+| :-------------------------------------------------------: | :----------------------------------------------------------: | :----------------------------------------------------------: |
+|            ![full](./imgs/full_train_loss.png)            |          ![non-reb](./imgs/non_rebalance_loss.png)           |              ![reb](./imgs/rebalance_loss.png)               |
+| ![full—auc](./metric/metric_results_224/full/Raw_AuC.png) | ![nonreb—auc](./metric/metric_results_224/rebalance_non/Raw_AuC.png) | ![reb_auc](./metric/metric_results_224/rebalance/Raw_AuC.png) |
 
 ### 7.2 Sample results
 
@@ -206,6 +206,6 @@ Additional information about the model can be found in the following table:
 | Framework version     | Paddle 2.0.2                                                 |
 | Application scenarios | Image Colorization                                           |
 | Supported Hardware    | GPU、CPU                                                     |
-| Download link         | [Pre-trained model](https://pan.baidu.com/s/1znPsSVKCUeNYLev5Aicq4w ) (code：hhg4) |
+| Download link         | [Pre-trained model](https://pan.baidu.com/s/16irXOKfOC1T_wKV_TC73Jw  ) (code：f444) |
 | Online operation      | [Scripts](https://aistudio.baidu.com/aistudio/clusterprojectdetail/2304371) |
 

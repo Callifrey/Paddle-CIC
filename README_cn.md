@@ -20,6 +20,8 @@
 
 ## 一、简介
 
+![architecture](./imgs/architecture.png)
+
 本项目是基于PaddlePaddle框架复现经典图像上色论文CIC(Colorful Image Colorization), CIC能够对灰度输入进行彩色通道的建模，对图像的色彩进行复原。该论文的创新点在于将色彩通道（ab）的预测视为一个分类任务，即首先将真实的ab通道编码成313个bin, 模型的前向过程相当于在进行313类分类。同时为了解决图像复原色彩受到背景等大范围非饱和区域的影响，根据ab的先验分布对各个pixel的损失进行加权，实质上等同于做了颜色类别平衡。
 
 **论文**
@@ -39,19 +41,29 @@
 
 ## 二、复现精度
 
-| 模型                                             | AuC    | ACC    |
-| ------------------------------------------------ | ------ | ------ |
-| Full 模型(使用color rebalance, $\lambda=0.5$ )   | 87.48% | 58.19% |
-| Non-rebalance变体                                | 90.89% | 60.54% |
-| Rebalance变体(使用color rebalance, $\lambda=0$ ) | 87.07% | 57.65% |
+CIC模型是在224x224分辨率上进行训练的，但由于模型中只包含卷积层，因此在做测试时可以处理任意尺寸的图像输入，由此我们报告两组不同的测试结果：
 
-* **说明**：原始论文在评估模型性能时将从mageNet验证集中独立出10000张作为测试集，由于无法确定是哪一部分，本次复现的指标是在整个验证上得到的，且整个训练过程未使用验证集。
+* 按原始尺寸输入
 
-  
+  | 模型                                             | AuC        | ACC                         |
+  | ------------------------------------------------ | ---------- | --------------------------- |
+  | Full 模型(使用color rebalance, $\lambda=0.5$ )   | 86.36%     | **56.0%**  (两位小数55.89%) |
+  | Non-rebalance变体                                | **90.61%** | 59.32%                      |
+  | Rebalance变体(使用color rebalance, $\lambda=0$ ) | **75.82%** | 41.37%                      |
+
+* 将测试集图像调整成224x224
+
+  | 模型                                             | AuC        | ACC        |
+  | ------------------------------------------------ | ---------- | ---------- |
+  | Full 模型(使用color rebalance, $\lambda=0.5$ )   | 87.36%     | **56.44%** |
+  | Non-rebalance变体                                | **91.13%** | 59.40%     |
+  | Rebalance变体(使用color rebalance, $\lambda=0$ ) | **77.91%** | 42.86%     |
+
+* **注意：**加粗的指标是论文中报告的指标，在两种测试设置下均对齐。
 
 ## 三、数据集
 
-论文中的数据集是[ImageNet](https://image-net.org/), 实验是在CIE Lab颜色空间上进行的，原始的ImageNet数据集包括约130W张训练图像， 50000张验证集图像和10000张测试图像，本次复现训练集使用原始训练集，模型测试则是在全体验证集上进行。
+论文中的数据集是[ImageNet](https://image-net.org/), 实验是在CIE Lab颜色空间上进行的，原始的ImageNet数据集包括约130W张训练图像， 50000张验证集图像和10000张测试图像，本次复现训练集使用原始训练集。根据论文说明，模型的验证是在前10000张验证集上进行的，测试则是在验证集中独立的10000张图像上进行的。该划分遵循论文["Learning representations for automatic colorization "](https://link.springer.com/chapter/10.1007/978-3-319-46493-0_35) , 具体的划分策略见[论文官网](http://people.cs.uchicago.edu/~larsson/colorization/)
 
 
 
@@ -82,33 +94,21 @@ python -m paddle.distributed.launch --gpus '0,1,2,3' train.py --image_dir [train
 
 ### 测试
 
-* **步骤1：** 由于ImageNet的验证集存在单通道的灰度图像，这些图像对于测试是无效的，先运行以下代码找出无效图像
-
-  ```python
-  python get_invalid_images.py
-  ```
-
-  上述代码执行后会在根目录下生成删除脚本，执行该脚本文件进行删除
-
-  ```python
-  bash remove_invalid.sh
-  ```
-
-* **步骤2：** 生成上色图像
+* **步骤1：** 生成上色图像
 
   ```python
   python test.py --image_dir [testing path]
   ```
 
-* **步骤3：** 对生成的上色图像执行图像分类，得到分类精度，因为当上色模型表现良好时生成的上色图像可以得到比灰度图像更高的分类精度。这里和原文一致，使用预训练好的VGG-16执行分类。模型结构和预训练权重均来自于paddle.vision.models：
+* **步骤2：** 对生成的上色图像执行图像分类，得到分类精度，因为当上色模型表现良好时生成的上色图像可以得到比灰度图像更高的分类精度。这里和原文一致，使用预训练好的VGG-16执行分类。模型结构和预训练权重均来自于paddle.vision.models：
 
   ```python
   python metrics_acc.py 
   ```
 
-  最终的精度结果会写入指定的目录中(例:[./metric/metric_results](./metric/metric_results))
+  最终的精度结果会写入指定的目录中(例:[./metric/metric_results_224/full](./metric/metric_results_224/full))
 
-* **步骤4：** 在真实图像与生成图像的ab通道之间计算欧式距离，并统计在特定阈值内的像素比例，阈值从0到150逐个扫描，将最后的统计结果画出曲线，计算曲线下方的面积。这里与传统的AuC计算类似，但本实现未使用第三方库，直接以相邻两个阈值间构成的**“直角梯形”** 的面积近似为曲线下方面积。对150个梯形面积进行求和后再归一化：
+* **步骤3：** 在真实图像与生成图像的ab通道之间计算欧式距离，并统计在特定阈值内的像素比例，阈值从0到150逐个扫描，将最后的统计结果画出曲线，计算曲线下方的面积。这里与传统的AuC计算类似，但本实现未使用第三方库，直接以相邻两个阈值间构成的**“直角梯形”** 的面积近似为曲线下方面积。对150个梯形面积进行求和后再归一化：
 
   ```python
   python metrics_auc.py
@@ -118,7 +118,7 @@ python -m paddle.distributed.launch --gpus '0,1,2,3' train.py --image_dir [train
 
 ### 使用预训练模型测试
 
-本实现的预训练模型见[百度云盘](https://pan.baidu.com/s/1znPsSVKCUeNYLev5Aicq4w ), 提取码：[hhg4 ](#), 预训练模型包括三组，分别是Full model、Non-rebalance变体以及Rebalance 变体。各文件夹内包含最终的checkpoint和训练期间使用Paddle visualdl工具记录的train loss。
+本实现的预训练模型见[百度云盘]( https://pan.baidu.com/s/16irXOKfOC1T_wKV_TC73Jw ), 提取码：[f444 ](#), 预训练模型包括三组，分别是Full model、Non-rebalance变体以及Rebalance 变体。各文件夹内包含最终的checkpoint和训练期间使用Paddle visualdl工具记录的train loss。
 
 
 
@@ -178,10 +178,10 @@ python -m paddle.distributed.launch --gpus '0,1,2,3' train.py --image_dir [train
 
 ### 7.1 训练Loss及绘制的AuC曲线
 
-|                     最终模型                     |                   变体1：non-rebalance                    |                  变体2：rebalance                   |
-| :----------------------------------------------: | :-------------------------------------------------------: | :-------------------------------------------------: |
-|       ![full](./imgs/full_train_loss.png)        |         ![non-reb](./imgs/non_rebalance_loss.png)         |          ![reb](./imgs/rebalance_loss.png)          |
-| ![full—auc](./metric/metric_results/Raw_AcU.png) | ![nonreb—auc](./metric/metric_results_nonreb/Raw_AuC.png) | ![reb_auc](./metric/metric_results_reb/Raw_AuC.png) |
+|                         最终模型                          |                     变体1：non-rebalance                     |                       变体2：rebalance                       |
+| :-------------------------------------------------------: | :----------------------------------------------------------: | :----------------------------------------------------------: |
+|            ![full](./imgs/full_train_loss.png)            |          ![non-reb](./imgs/non_rebalance_loss.png)           |              ![reb](./imgs/rebalance_loss.png)               |
+| ![full—auc](./metric/metric_results_224/full/Raw_AuC.png) | ![nonreb—auc](./metric/metric_results_224/rebalance_non/Raw_AuC.png) | ![reb_auc](./metric/metric_results_224/rebalance/Raw_AuC.png) |
 
 ### 7.2 生成的上色图像示例
 
@@ -204,6 +204,6 @@ python -m paddle.distributed.launch --gpus '0,1,2,3' train.py --image_dir [train
 | 框架版本 | Paddle 2.0.2                                                 |
 | 应用场景 | 图像上色                                                     |
 | 支持硬件 | GPU、CPU                                                     |
-| 下载链接 | [预训练模型](https://pan.baidu.com/s/1znPsSVKCUeNYLev5Aicq4w ) (提取码：hhg4) |
+| 下载链接 | [预训练模型](https://pan.baidu.com/s/16irXOKfOC1T_wKV_TC73Jw  ) (提取码：f444) |
 | 在线运行 | [脚本任务](https://aistudio.baidu.com/aistudio/clusterprojectdetail/2304371) |
 
