@@ -63,7 +63,7 @@ CIC模型是在224x224分辨率上进行训练的，但由于模型中只包含�
 
 ## 三、数据集
 
-论文中的数据集是[ImageNet](https://image-net.org/), 实验是在CIE Lab颜色空间上进行的，原始的ImageNet数据集包括约130W张训练图像， 50000张验证集图像和10000张测试图像，本次复现训练集使用原始训练集。根据论文说明，模型的验证是在前10000张验证集上进行的，测试则是在验证集中独立的10000张图像上进行的。该划分遵循论文["Learning representations for automatic colorization "](https://link.springer.com/chapter/10.1007/978-3-319-46493-0_35) , 具体的划分策略见[论文官网](http://people.cs.uchicago.edu/~larsson/colorization/)
+论文中的数据集是[ImageNet](https://image-net.org/), 实验是在CIE Lab颜色空间上进行的，原始的ImageNet数据集包括约130W张训练图像， 50000张验证集图像和10000张测试图像，本次复现训练集使用原始训练集。根据论文说明，模型的验证是在前10000张验证集上进行的，测试则是在验证集中独立的10000张图像上进行的。该划分遵循论文["Learning representations for automatic colorization "](https://link.springer.com/chapter/10.1007/978-3-319-46493-0_35) , 具体的划分策略见[论文官网](http://people.cs.uchicago.edu/~larsson/colorization/). 请把对应的图像放在 [./data/xxx](./data)目录下。
 
 
 
