@@ -127,6 +127,7 @@ The pre-training model for this implementation is available at [Baidu Cloud Driv
 ### 6.1 code structure
 
 ```python
+├─data                            # dir for all data
 ├─imgs                            # dir for all imags
 ├─log                             # dir for log files
 ├─metric                          # dir for metric files
