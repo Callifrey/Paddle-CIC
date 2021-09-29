@@ -21,8 +21,8 @@ class NNEncLayer(object):  # nearest neighbors encode layer
         self.sigma = sigma
         self.nnenc = NNEncode(self.NN, self.sigma, km_filepath='./resources/pts_in_hull.npy')
 
-        self.X = 256
-        self.Y = 256
+        self.X = 224
+        self.Y = 224
         self.Q = self.nnenc.K
 
     def forward(self, x):
@@ -48,8 +48,8 @@ class PriorBoostLayer(object):
         self.alpha = alpha
         self.pc = PriorFactor(self.alpha, gamma=self.gamma, priorFile=os.path.join(ENC_DIR, 'prior_probs.npy'))
 
-        self.X = 256
-        self.Y = 256
+        self.X = 224
+        self.Y = 224
 
     def forward(self, bottom):
         return self.pc.forward(bottom, axis=1)
