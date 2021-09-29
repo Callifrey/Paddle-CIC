@@ -63,7 +63,7 @@ The CIC model is trained on 224x224 resolution, but since the model contains onl
 
 ## 3. Dataset
 
-The dataset in the paper is [ImageNet](https://image-net.org/), and the experiments are conducted on the CIE Lab color space. The original ImageNet dataset consists of about 130W training images, 50,000 validation set images and 10,000 test images, and the original training set is used for this replication. According to the paper description, the validation of the model is performed on the first 10,000 validation sets, and the testing is performed on 10,000 separate images in the validation set. The division follows the paper ["Learning representations for automatic colorization"](https://link.springer.com/chapter/10.1007/978-3-319-46493-0_35) , and the specific division strategy See [official website](http://people.cs.uchicago.edu/~larsson/colorization/)
+The dataset in the paper is [ImageNet](https://image-net.org/), and the experiments are conducted on the CIE Lab color space. The original ImageNet dataset consists of about 130W training images, 50,000 validation set images and 10,000 test images, and the original training set is used for this replication. According to the paper description, the validation of the model is performed on the first 10,000 validation sets, and the testing is performed on 10,000 separate images in the validation set. The division follows the paper ["Learning representations for automatic colorization"](https://link.springer.com/chapter/10.1007/978-3-319-46493-0_35) , and the specific division strategy See [official website](http://people.cs.uchicago.edu/~larsson/colorization/). Please put files under [./data/xxx](./data).
 
 
 
@@ -94,7 +94,7 @@ python -m paddle.distributed.launch --gpus '0,1,2,3' train.py --image_dir [train
 
 ### Testing
 
-* **step1：**generate colorization results
+* **step1 ** generate colorization results
 
   ```python
   python test.py --image_dir [testing path]
