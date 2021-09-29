@@ -9,7 +9,7 @@ import os
 
 parser = argparse.ArgumentParser()
 parser.add_argument('--results_dir', type=str, default='./result', help='path for generated images')
-parser.add_argument('--save_path', type=str, default='./metric/metric_result', help='path for save metric results')
+parser.add_argument('--save_path', type=str, default='./metric/metric_results_224', help='path for save metric results')
 args = parser.parse_args()
 
 model = vgg.vgg16(pretrained=True)
@@ -17,7 +17,7 @@ model.eval()
 print(model)
 
 val_transform = transforms.Compose([
-    transforms.Resize(256),
+    transforms.Resize(224),
     transforms.CenterCrop(224),
     transforms.ToTensor(),
     transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225])
