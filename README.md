@@ -47,17 +47,17 @@ The CIC model is trained on 224x224 resolution, but since the model contains onl
 
   | Model                                    | AuC        | ACC                                    |
   | ---------------------------------------- | ---------- | -------------------------------------- |
-  | Full (color rebalance, $$\lambda=0.5$$ )   | 86.36%     | **56.0%** (two decimal places：55.89%) |
-  | Non-rebalance                            | **90.61%** | 59.32%                                 |
-  | Rebalance(color rebalance, $$\lambda=0$$ ) | **75.82%** | 41.37                                  |
+  | Full (color rebalance, $$\lambda=0.5$$ )   | 86.36%     | 56.0%(two decimal places：55.89%)(**56.0%**) |
+  | Non-rebalance                            | 90.61%(**89.5%**) | 59.32%                                 |
+  | Rebalance(color rebalance, $$\lambda=0$$ ) | 75.82%(**67.3%**) | 41.37                                  |
 
 * resize input to 224x224
 
   | Model                                    | AuC        | ACC        |
   | ---------------------------------------- | ---------- | ---------- |
-  | Full (color rebalance, $\lambda=0.5$ )   | 87.36%     | **56.44%** |
-  | Non-rebalance                            | **91.13%** | 59.40%     |
-  | Rebalance(color rebalance, $\lambda=0$ ) | **77.91%** | 42.86%     |
+  | Full (color rebalance, $\lambda=0.5$ )   | 87.36%     | 56.44% (**56.0%**) |
+  | Non-rebalance                            | 91.13% (**89.5%**) | 59.40%     |
+  | Rebalance(color rebalance, $\lambda=0$ ) | 77.91%(**67.3%**)  | 42.86%     |
 
   **Note: **The bolded metrics are those reported in the paper and are aligned in both test settings.
 
