@@ -4,7 +4,6 @@ from paddle.io import DataLoader
 from paddle.vision.models import vgg
 from dataset import ImageNetClassification
 import numpy as np
-import paddle.fluid as fluid
 import os
 
 parser = argparse.ArgumentParser()
@@ -26,17 +25,18 @@ val_transform = transforms.Compose([
 imagenet = ImageNetClassification(root=args.results_dir, transform=val_transform)
 dataloader = DataLoader(dataset=imagenet, batch_size=10, shuffle=False)
 
-accuracy = []
+accuracy = paddle.metric.Accuracy()
 for i, data in enumerate(dataloader):
     img, label = data
     label = label.reshape([-1, 1])
     predict = model(img)
-    acc = fluid.layers.accuracy(predict, label)
-    accuracy.append(acc)
+    correct = accuracy.compute(predict, label)
+    accuracy.update(correct)
     if i % 10 == 0:
         print('Done step {}'.format(i))
-print('Accuracy:{}'.format(np.mean(accuracy)))
+acc = accuracy.accumulate()
+print('Accuracy:{}'.format(acc))
 
 # log accuracy
 with open(os.path.join(args.save_path, 'acc_recond.txt'), 'w') as f:
-    f.write('Accuracy:{}'.format(np.mean(accuracy)))
+    f.write('Accuracy:{}'.format(acc))
